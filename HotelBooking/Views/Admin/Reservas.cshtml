@@ -1,0 +1,131 @@
+﻿@model List<HotelBooking.Models.Reserva>
+@{
+    ViewData["Title"] = "Gestión de Reservas";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<!-- Filtros -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    @{
+        var estados = new[] {
+        ("", "Todas"), ("Pendiente", "Pendientes"), ("Confirmada", "Confirmadas"),
+        ("CheckIn", "Check-In"), ("CheckOut", "Check-Out"), ("Cancelada", "Canceladas")
+        };
+        var colores = new[] { "secondary", "warning", "success", "info", "dark", "danger" };
+    }
+    @for (int i = 0; i < estados.Length; i++)
+    {
+        var (val, label) = estados[i];
+        var color = colores[i];
+        var activo = (string?)ViewBag.EstadoFiltro == (val == "" ? null : val);
+        <a asp-action="Reservas" asp-route-estado="@val"
+           class="btn btn-@(activo? color : $"outline-{color}") btn-sm">@label</a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                <p>No hay reservas con este filtro</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Habitación</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Noches</th>
+                            <th>Total</th>
+                            <th>Fecha Reserva</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            var badgeColor = r.Estado switch
+                            {
+                                "Pendiente" => "warning",
+                                "Confirmada" => "success",
+                                "CheckIn" => "info",
+                                "CheckOut" => "dark",
+                                "Cancelada" => "danger",
+                                _ => "secondary"
+                            };
+                            <tr>
+                                <td><small class="text-muted fw-bold">#@r.Id</small></td>
+                                <td>
+                                    <strong>@r.Usuario?.Nombre</strong><br />
+                                    <small class="text-muted">@r.Usuario?.Email</small>
+                                </td>
+                                <td><small>@r.Habitacion?.Nombre</small></td>
+                                <td>@r.FechaEntrada.ToString("dd/MM/yyyy")</td>
+                                <td>@r.FechaSalida.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">@r.TotalDias</td>
+                                <td><strong class="text-primary">Bs. @r.TotalPagar.ToString("N0")</strong></td>
+                                <td><small>@r.FechaReserva.ToString("dd/MM/yyyy HH:mm")</small></td>
+                                <td><span class="badge bg-@badgeColor">@r.Estado</span></td>
+                                <td>
+                                    <!-- Cambiar estado según el flujo -->
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        @if (r.Estado == "Pendiente")
+                                        {
+                                            <form asp-action="CambiarEstadoReserva" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <input type="hidden" name="nuevoEstado" value="Confirmada" />
+                                                <button type="submit" class="btn btn-success btn-sm" title="Confirmar">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <form asp-action="CambiarEstadoReserva" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <input type="hidden" name="nuevoEstado" value="Cancelada" />
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Cancelar">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (r.Estado == "Confirmada")
+                                        {
+                                            <form asp-action="CambiarEstadoReserva" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <input type="hidden" name="nuevoEstado" value="CheckIn" />
+                                                <button type="submit" class="btn btn-info btn-sm text-white" title="Check-In">
+                                                    <i class="fas fa-sign-in-alt"></i> In
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (r.Estado == "CheckIn")
+                                        {
+                                            <form asp-action="CambiarEstadoReserva" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <input type="hidden" name="nuevoEstado" value="CheckOut" />
+                                                <button type="submit" class="btn btn-dark btn-sm" title="Check-Out">
+                                                    <i class="fas fa-sign-out-alt"></i> Out
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

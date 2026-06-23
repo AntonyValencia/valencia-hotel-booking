@@ -1,0 +1,114 @@
+﻿@* =====================================================
+   Views/Admin/CrearHabitacion.cshtml
+   ===================================================== *@
+@model HotelBooking.Models.Habitacion
+@{
+    ViewData["Title"] = "Nueva Habitación";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <form asp-action="CrearHabitacion" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="Nombre" class="form-label fw-bold">Nombre de la habitación</label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Ej: Suite Ejecutiva Premium" />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="CategoriaId" class="form-label fw-bold">Categoría</label>
+                            <select asp-for="CategoriaId" asp-items="ViewBag.Categorias" class="form-select">
+                                <option value="">Seleccionar...</option>
+                            </select>
+                            <span asp-validation-for="CategoriaId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Descripcion" class="form-label fw-bold">Descripción</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3"
+                                      placeholder="Descripción detallada de la habitación..."></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PrecioPorNoche" class="form-label fw-bold">
+                                <i class="fas fa-bolivar-sign me-1 text-primary"></i>Precio por noche (Bs.)
+                            </label>
+                            <input asp-for="PrecioPorNoche" type="number" class="form-control"
+                                   min="1" step="0.01" placeholder="250.00" />
+                            <span asp-validation-for="PrecioPorNoche" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Capacidad" class="form-label fw-bold">
+                                <i class="fas fa-users me-1 text-primary"></i>Capacidad
+                            </label>
+                            <input asp-for="Capacidad" type="number" class="form-control" min="1" max="20" />
+                            <span asp-validation-for="Capacidad" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Estado</label>
+                            <div class="form-check form-switch mt-2">
+                                <input asp-for="Disponible" class="form-check-input" type="checkbox"
+                                       role="switch" checked />
+                                <label asp-for="Disponible" class="form-check-label">Disponible</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Servicios" class="form-label fw-bold">
+                                <i class="fas fa-concierge-bell me-1 text-primary"></i>Servicios (separados por coma)
+                            </label>
+                            <input asp-for="Servicios" class="form-control"
+                                   placeholder="WiFi Gratis, TV 50&quot;, Aire Acondicionado, Balcón" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-images me-1 text-primary"></i>Imágenes (3-5 fotos recomendado)
+                            </label>
+                            <input type="file" name="imagenes" class="form-control"
+                                   accept="image/*" multiple id="inputImagenes" />
+                            <div class="form-text">La primera imagen será la principal. Formatos: JPG, PNG, WEBP</div>
+                            <!-- Preview de imágenes -->
+                            <div id="previewImagenes" class="d-flex gap-2 mt-2 flex-wrap"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <a asp-action="Habitaciones" class="btn btn-outline-secondary flex-fill">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fas fa-save me-2"></i>Crear Habitación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Preview de imágenes antes de subir
+        document.getElementById('inputImagenes')?.addEventListener('change', function() {
+            const preview = document.getElementById('previewImagenes');
+            preview.innerHTML = '';
+            [...this.files].forEach((file, i) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="rounded-3" style="width:100px;height:70px;object-fit:cover;" />
+                        ${i === 0 ? '<span class="badge bg-primary position-absolute top-0 start-0" style="font-size:0.6rem">Principal</span>' : ''}
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+}

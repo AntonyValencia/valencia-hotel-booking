@@ -1,0 +1,194 @@
+﻿@model HotelBooking.Models.Habitacion
+@{
+    ViewData["Title"] = Model.Nombre;
+    var imagenes = Model.Imagenes.ToList();
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item active">@Model.Nombre</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- COLUMNA IZQUIERDA: Imágenes -->
+        <div class="col-lg-7">
+            <!-- Carrusel Principal -->
+            <div id="carruselHabitacion" class="carousel slide rounded-4 overflow-hidden shadow" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    @for (int i = 0; i < imagenes.Count; i++)
+                    {
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <img src="@imagenes[i].UrlImagen" class="d-block w-100"
+                                 style="height: 420px; object-fit: cover;" alt="Imagen @(i + 1)" />
+                        </div>
+                    }
+                    @if (!imagenes.Any())
+                    {
+                        <div class="carousel-item active">
+                            <img src="/images/default-room.jpg" class="d-block w-100"
+                                 style="height: 420px; object-fit: cover;" alt="Habitación" />
+                        </div>
+                    }
+                </div>
+                @if (imagenes.Count > 1)
+                {
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carruselHabitacion" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carruselHabitacion" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                    <!-- Indicadores (miniaturas) -->
+                    <div class="d-flex gap-2 p-2 bg-dark">
+                        @for (int i = 0; i < imagenes.Count; i++)
+                        {
+                            <img src="@imagenes[i].UrlImagen"
+                                 class="miniatura-img rounded @(i == 0 ? "active-thumb" : "")"
+                                 data-index="@i"
+                                 style="width:80px;height:55px;object-fit:cover;cursor:pointer;opacity:0.6;transition:all 0.3s;border:2px solid transparent;"
+                                 onclick="irASlide(@i)" alt="Mini @(i + 1)" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: Detalles y Reserva -->
+        <div class="col-lg-5">
+            <div class="sticky-top" style="top: 80px;">
+                <span class="badge bg-primary fs-6 mb-2">@Model.Categoria?.Nombre</span>
+                <h2 class="fw-bold">@Model.Nombre</h2>
+
+                <!-- Precio -->
+                <div class="my-3 p-3 bg-primary bg-opacity-10 rounded-3">
+                    <span class="display-6 fw-bold text-primary">Bs. @Model.PrecioPorNoche.ToString("N0")</span>
+                    <span class="text-muted fs-5"> / noche</span>
+                </div>
+
+                <!-- Info rápida -->
+                <div class="d-flex gap-3 mb-3">
+                    <div class="text-center p-2 bg-light rounded-3 flex-fill">
+                        <i class="fas fa-users text-primary fs-5"></i>
+                        <div class="small fw-bold">@Model.Capacidad personas</div>
+                    </div>
+                    <div class="text-center p-2 bg-light rounded-3 flex-fill">
+                        <i class="fas fa-tag text-primary fs-5"></i>
+                        <div class="small fw-bold">@Model.Categoria?.Nombre</div>
+                    </div>
+                    <div class="text-center p-2 bg-light rounded-3 flex-fill">
+                        <i class="fas fa-star text-warning fs-5"></i>
+                        <div class="small fw-bold">5.0 ★</div>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <p class="text-muted mb-3">@Model.Descripcion</p>
+
+                <!-- Servicios -->
+                @if (!string.IsNullOrEmpty(Model.Servicios))
+                {
+                    <div class="mb-3">
+                        <h6 class="fw-bold"><i class="fas fa-concierge-bell me-2 text-primary"></i>Servicios incluidos</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var s in Model.Servicios.Split(','))
+                            {
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-3 py-2">
+                                    <i class="fas fa-check me-1"></i>@s.Trim()
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- FORMULARIO DE RESERVA -->
+                <div class="card border-primary shadow-sm mt-3">
+                    <div class="card-header bg-primary text-white fw-bold">
+                        <i class="fas fa-calendar-plus me-2"></i>Verificar disponibilidad
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">📅 Fecha de entrada</label>
+                            <input type="date" id="fechaEntrada" class="form-control" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">📅 Fecha de salida</label>
+                            <input type="date" id="fechaSalida" class="form-control" min="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div id="resultadoDisponibilidad" class="mb-3 d-none"></div>
+                        <button onclick="verificarDisponibilidad()" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-search me-2"></i>Verificar disponibilidad
+                        </button>
+                        <a id="btnReservar" asp-controller="Reserva" asp-action="Crear" asp-route-habitacionId="@Model.Id"
+                           class="btn btn-warning w-100 fw-bold">
+                            <i class="fas fa-calendar-check me-2"></i>Reservar ahora
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Control de miniaturas del carrusel
+        const carousel = document.getElementById('carruselHabitacion');
+        carousel?.addEventListener('slid.bs.carousel', function (e) {
+            document.querySelectorAll('.miniatura-img').forEach((img, i) => {
+                img.style.opacity = i === e.to ? '1' : '0.6';
+                img.style.border = i === e.to ? '2px solid #0d6efd' : '2px solid transparent';
+            });
+        });
+
+        function irASlide(index) {
+            const bsCarousel = bootstrap.Carousel.getInstance(document.getElementById('carruselHabitacion'));
+            bsCarousel?.to(index);
+        }
+
+        // Verificar disponibilidad via AJAX
+        async function verificarDisponibilidad() {
+            const entrada = document.getElementById('fechaEntrada').value;
+            const salida = document.getElementById('fechaSalida').value;
+            const div = document.getElementById('resultadoDisponibilidad');
+
+            if (!entrada || !salida) {
+                div.innerHTML = '<div class="alert alert-warning py-2">Por favor selecciona ambas fechas</div>';
+                div.classList.remove('d-none');
+                return;
+            }
+
+            div.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Verificando...</div>';
+            div.classList.remove('d-none');
+
+            try {
+                const res = await fetch(`/Home/VerificarDisponibilidad?habitacionId=@Model.Id&entrada=${entrada}&salida=${salida}`);
+                const data = await res.json();
+
+                if (data.disponible) {
+                    div.innerHTML = `
+                        <div class="alert alert-success py-2">
+                            <i class="fas fa-check-circle me-2"></i><strong>¡Disponible!</strong><br>
+                            <small>${data.dias} noches × Bs. @Model.PrecioPorNoche = <strong>Bs. ${data.total}</strong></small>
+                        </div>`;
+                    const btnReservar = document.getElementById('btnReservar');
+                    btnReservar.href = `/Reserva/Crear/@Model.Id?fechaEntrada=${entrada}&fechaSalida=${salida}`;
+                } else {
+                    div.innerHTML = `<div class="alert alert-danger py-2"><i class="fas fa-times-circle me-2"></i>${data.mensaje}</div>`;
+                }
+            } catch {
+                div.innerHTML = '<div class="alert alert-danger py-2">Error al verificar. Intenta de nuevo.</div>';
+            }
+        }
+
+        // Actualizar fecha mínima de salida
+        document.getElementById('fechaEntrada')?.addEventListener('change', function() {
+            const entrada = new Date(this.value);
+            entrada.setDate(entrada.getDate() + 1);
+            document.getElementById('fechaSalida').min = entrada.toISOString().split('T')[0];
+        });
+    </script>
+}

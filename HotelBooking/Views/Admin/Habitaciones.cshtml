@@ -1,0 +1,84 @@
+﻿@* =====================================================
+   Views/Admin/Habitaciones.cshtml
+   ===================================================== *@
+@model List<HotelBooking.Models.Habitacion>
+@{
+    ViewData["Title"] = "Gestión de Habitaciones";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div>
+    <a asp-action="CrearHabitacion" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Nueva Habitación
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Habitación</th>
+                        <th>Categoría</th>
+                        <th>Precio/Noche</th>
+                        <th>Capacidad</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var h in Model)
+                    {
+                        var img = h.Imagenes.FirstOrDefault()?.UrlImagen ?? "/images/default-room.jpg";
+                        <tr>
+                            <td>
+                                <img src="@img" width="70" height="50"
+                                     class="rounded-3 object-fit-cover" alt="@h.Nombre" />
+                            </td>
+                            <td>
+                                <strong>@h.Nombre</strong><br />
+                                <small class="text-muted">@h.Imagenes.Count foto(s)</small>
+                            </td>
+                            <td><span class="badge bg-primary">@h.Categoria?.Nombre</span></td>
+                            <td><strong class="text-primary">Bs. @h.PrecioPorNoche.ToString("N0")</strong></td>
+                            <td><i class="fas fa-users me-1 text-muted"></i>@h.Capacidad</td>
+                            <td>
+                                @if (h.Disponible)
+                                {
+                                    <span class="badge bg-success">Disponible</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">No disponible</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="EditarHabitacion" asp-route-id="@h.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-controller="Home" asp-action="Detalle" asp-route-id="@h.Id"
+                                       class="btn btn-sm btn-outline-info" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form asp-action="EliminarHabitacion" method="post" class="d-inline"
+                                          onsubmit="return confirm('¿Eliminar @h.Nombre? Esta acción no se puede deshacer.')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@h.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

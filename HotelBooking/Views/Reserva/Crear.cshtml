@@ -1,0 +1,151 @@
+﻿@model HotelBooking.Models.ViewModels.ReservaViewModel
+@{
+    ViewData["Title"] = "Crear Reserva";
+    var hab = Model.Habitacion!;
+    var imgPrincipal = hab.Imagenes.FirstOrDefault(i => i.EsPrincipal)?.UrlImagen
+                       ?? hab.Imagenes.FirstOrDefault()?.UrlImagen ?? "/images/default-room.jpg";
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Detalle" asp-route-id="@hab.Id">@hab.Nombre</a></li>
+            <li class="breadcrumb-item active">Reservar</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- RESUMEN DE HABITACIÓN -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:80px">
+                <img src="@imgPrincipal" class="card-img-top rounded-top-4"
+                     style="height: 200px; object-fit: cover;" alt="@hab.Nombre" />
+                <div class="card-body">
+                    <span class="badge bg-primary mb-2">@hab.Categoria?.Nombre</span>
+                    <h5 class="fw-bold">@hab.Nombre</h5>
+                    <p class="text-muted small">@hab.Descripcion</p>
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Precio por noche:</span>
+                        <span class="fw-bold fs-5 text-primary">Bs. @hab.PrecioPorNoche.ToString("N0")</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="text-muted">Capacidad:</span>
+                        <span><i class="fas fa-users me-1 text-primary"></i>@hab.Capacidad personas</span>
+                    </div>
+                    <hr />
+                    <!-- Total calculado dinámicamente -->
+                    <div id="resumenTotal" class="p-3 bg-primary bg-opacity-10 rounded-3 d-none">
+                        <div class="d-flex justify-content-between">
+                            <span>Noches:</span>
+                            <span id="totalNoches" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span class="fw-bold">Total a pagar:</span>
+                            <span id="totalPagar" class="fw-bold text-primary fs-5">Bs. 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE RESERVA -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4 py-3">
+                    <h5 class="mb-0"><i class="fas fa-calendar-plus me-2"></i>Datos de tu reserva</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-controller="Reserva" asp-action="Crear" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="HabitacionId" />
+
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FechaEntrada" class="form-label fw-bold">
+                                    <i class="fas fa-calendar-check me-1 text-success"></i>Fecha de entrada
+                                </label>
+                                <input asp-for="FechaEntrada" type="date" class="form-control form-control-lg"
+                                       min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                                       onchange="calcularTotal()" />
+                                <span asp-validation-for="FechaEntrada" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="FechaSalida" class="form-label fw-bold">
+                                    <i class="fas fa-calendar-times me-1 text-danger"></i>Fecha de salida
+                                </label>
+                                <input asp-for="FechaSalida" type="date" class="form-control form-control-lg"
+                                       min="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")"
+                                       onchange="calcularTotal()" />
+                                <span asp-validation-for="FechaSalida" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notas" class="form-label fw-bold">
+                                <i class="fas fa-sticky-note me-1 text-warning"></i>Notas adicionales (opcional)
+                            </label>
+                            <textarea asp-for="Notas" class="form-control" rows="3"
+                                      placeholder="Solicitudes especiales, llegada tardía, etc."></textarea>
+                        </div>
+
+                        <!-- Info de disponibilidad -->
+                        <div id="disponibilidadInfo" class="mb-3 d-none"></div>
+
+                        <div class="d-flex gap-3">
+                            <a asp-controller="Home" asp-action="Detalle" asp-route-id="@hab.Id"
+                               class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-warning btn-lg flex-fill fw-bold">
+                                <i class="fas fa-check-circle me-2"></i>Confirmar Reserva
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const precioPorNoche = @hab.PrecioPorNoche;
+
+        function calcularTotal() {
+            const entrada = document.querySelector('[name="FechaEntrada"]').value;
+            const salida = document.querySelector('[name="FechaSalida"]').value;
+
+            if (!entrada || !salida) return;
+
+            const dias = Math.round((new Date(salida) - new Date(entrada)) / 86400000);
+            const div = document.getElementById('resumenTotal');
+
+            if (dias > 0) {
+                document.getElementById('totalNoches').textContent = dias;
+                document.getElementById('totalPagar').textContent = `Bs. ${(dias * precioPorNoche).toLocaleString()}`;
+                div.classList.remove('d-none');
+            } else {
+                div.classList.add('d-none');
+            }
+        }
+
+        // Inicializar con valores del modelo
+        calcularTotal();
+
+        // Ajustar fecha mínima de salida
+        document.querySelector('[name="FechaEntrada"]')?.addEventListener('change', function() {
+            const entrada = new Date(this.value);
+            entrada.setDate(entrada.getDate() + 1);
+            const salidaInput = document.querySelector('[name="FechaSalida"]');
+            salidaInput.min = entrada.toISOString().split('T')[0];
+            if (salidaInput.value && new Date(salidaInput.value) <= new Date(this.value)) {
+                salidaInput.value = entrada.toISOString().split('T')[0];
+            }
+            calcularTotal();
+        });
+    </script>
+}

@@ -1,0 +1,124 @@
+﻿@model HotelBooking.Models.ViewModels.RegistroViewModel
+@{
+    ViewData["Title"] = "Crear Cuenta";
+}
+
+<div class="min-vh-100 d-flex align-items-center py-5"
+     style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+                            <h3 class="fw-bold">Crear cuenta</h3>
+                            <p class="text-muted">Únete al mejor hotel de Cochabamba</p>
+                        </div>
+
+                        <form asp-controller="Auth" asp-action="Registro" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <!-- Nombre -->
+                            <div class="mb-3">
+                                <label asp-for="Nombre" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1 text-primary"></i>Nombre completo
+                                </label>
+                                <input asp-for="Nombre" class="form-control" placeholder="Juan Pérez" />
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1 text-primary"></i>Email
+                                </label>
+                                <input asp-for="Email" class="form-control" placeholder="usuario@gmail.com" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Teléfono -->
+                            <div class="mb-3">
+                                <label asp-for="Telefono" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-1 text-primary"></i>Teléfono
+                                </label>
+                                <input asp-for="Telefono" class="form-control" placeholder="77712345" />
+                                <span asp-validation-for="Telefono" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Contraseña -->
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-1 text-primary"></i>Contraseña
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="Password" class="form-control" id="inputPass"
+                                           placeholder="Mínimo 8 caracteres" />
+                                    <button class="btn btn-outline-secondary" type="button"
+                                            onclick="togglePassword('inputPass', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="passReqs" class="mt-1 small text-muted">
+                                    <span id="req-len" class="me-2">✗ 8+ caracteres</span>
+                                    <span id="req-may" class="me-2">✗ Mayúscula</span>
+                                    <span id="req-num">✗ Número</span>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Confirmar contraseña -->
+                            <div class="mb-4">
+                                <label asp-for="ConfirmarPassword" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-1 text-primary"></i>Confirmar contraseña
+                                </label>
+                                <input asp-for="ConfirmarPassword" class="form-control"
+                                       id="inputPassConfirm" placeholder="Repite tu contraseña" />
+                                <span asp-validation-for="ConfirmarPassword" class="text-danger small"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                                <i class="fas fa-user-plus me-2"></i>Crear mi cuenta
+                            </button>
+                        </form>
+
+                        <hr />
+                        <div class="text-center">
+                            <p class="mb-0">
+                                ¿Ya tienes cuenta?
+                                <a asp-controller="Auth" asp-action="Login" class="text-primary fw-bold">
+                                    Iniciar sesión
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+
+        // Indicadores de requisitos de contraseña
+        document.getElementById('inputPass')?.addEventListener('input', function() {
+            const val = this.value;
+            const setIcon = (id, ok) => {
+                const el = document.getElementById(id);
+                el.textContent = (ok ? '✓ ' : '✗ ') + el.textContent.slice(2);
+                el.style.color = ok ? '#198754' : '#6c757d';
+            };
+            setIcon('req-len', val.length >= 8);
+            setIcon('req-may', /[A-Z]/.test(val));
+            setIcon('req-num', /\d/.test(val));
+        });
+    </script>
+}

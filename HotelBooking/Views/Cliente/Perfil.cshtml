@@ -1,0 +1,89 @@
+﻿@model HotelBooking.Models.ViewModels.EditarPerfilViewModel
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4 py-3">
+                    <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Editar mi perfil</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-controller="Cliente" asp-action="Perfil" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label fw-bold">
+                                <i class="fas fa-user me-1 text-primary"></i>Nombre completo
+                            </label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Tu nombre completo" />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Telefono" class="form-label fw-bold">
+                                <i class="fas fa-phone me-1 text-primary"></i>Teléfono
+                            </label>
+                            <input asp-for="Telefono" class="form-control" placeholder="77712345" />
+                            <span asp-validation-for="Telefono" class="text-danger small"></span>
+                        </div>
+
+                        <hr class="my-3" />
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-info-circle me-1"></i>Deja estos campos vacíos si no deseas cambiar tu contraseña
+                        </p>
+
+                        <div class="mb-3">
+                            <label asp-for="NuevaPassword" class="form-label fw-bold">
+                                <i class="fas fa-lock me-1 text-primary"></i>Nueva contraseña
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="NuevaPassword" class="form-control" id="passNueva"
+                                       placeholder="Mínimo 8 caracteres" />
+                                <button class="btn btn-outline-secondary" type="button"
+                                        onclick="togglePass('passNueva', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="NuevaPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmarPassword" class="form-label fw-bold">
+                                <i class="fas fa-lock me-1 text-primary"></i>Confirmar nueva contraseña
+                            </label>
+                            <input asp-for="ConfirmarPassword" class="form-control" id="passConfirm"
+                                   placeholder="Repite la nueva contraseña" />
+                            <span asp-validation-for="ConfirmarPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <a asp-controller="Cliente" asp-action="MisReservas"
+                               class="btn btn-outline-secondary flex-fill">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-save me-2"></i>Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePass(id, btn) {
+            const inp = document.getElementById(id);
+            const icon = btn.querySelector('i');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+    </script>
+}

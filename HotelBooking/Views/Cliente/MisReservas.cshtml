@@ -1,0 +1,101 @@
+﻿@model List<HotelBooking.Models.Reserva>
+@{
+    ViewData["Title"] = "Mis Reservas";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-calendar-check me-2 text-primary"></i>Mis Reservas</h2>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Reserva
+        </a>
+    </div>
+
+    <!-- Filtros de estado -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        @{
+            var estados = new[] { ("", "Todas", "secondary"), ("Pendiente", "Pendientes", "warning"),
+                ("Confirmada", "Confirmadas", "success"), ("CheckIn", "Check-In", "info"),
+                ("CheckOut", "Check-Out", "dark"), ("Cancelada", "Canceladas", "danger") };
+        }
+        @foreach (var (val, label, color) in estados)
+        {
+            <a asp-action="MisReservas" asp-route-estado="@val"
+               class="btn btn-@(ViewBag.EstadoFiltro == (val == "" ? null : val) ? color : $"outline-{color}") btn-sm">
+                @label
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No tienes reservas aún</h5>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">
+                Ver habitaciones disponibles
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var reserva in Model)
+            {
+                var imgUrl = reserva.Habitacion?.Imagenes?.FirstOrDefault()?.UrlImagen ?? "/images/default-room.jpg";
+                var badgeColor = reserva.Estado switch
+                {
+                    "Pendiente" => "warning",
+                    "Confirmada" => "success",
+                    "CheckIn" => "info",
+                    "CheckOut" => "dark",
+                    "Cancelada" => "danger",
+                    _ => "secondary"
+                };
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                <img src="@imgUrl" class="img-fluid rounded-start-4 h-100"
+                                     style="object-fit:cover;" alt="Habitación" />
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-@badgeColor">@reserva.Estado</span>
+                                        <small class="text-muted">#@reserva.Id</small>
+                                    </div>
+                                    <h6 class="fw-bold mb-1">@reserva.Habitacion?.Nombre</h6>
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-calendar-check text-success me-1"></i>
+                                        @reserva.FechaEntrada.ToString("dd/MM/yyyy")
+                                        <span class="mx-1">→</span>
+                                        <i class="fas fa-calendar-times text-danger me-1"></i>
+                                        @reserva.FechaSalida.ToString("dd/MM/yyyy")
+                                    </p>
+                                    <p class="text-muted small mb-2">
+                                        <i class="fas fa-moon me-1"></i>@reserva.TotalDias noches
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-primary">Bs. @reserva.TotalPagar.ToString("N0")</span>
+                                        @if (reserva.Estado == "Pendiente" || reserva.Estado == "Confirmada")
+                                        {
+                                            <form asp-controller="Reserva" asp-action="Cancelar" method="post"
+                                                  onsubmit="return confirm('¿Seguro que deseas cancelar esta reserva?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@reserva.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-times me-1"></i>Cancelar
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
