@@ -1,3 +1,7 @@
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+var builder = WebApplication.CreateBuilder(args);
+
 using HotelBooking.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Entity Framework Core + SQL Server
-// En producciÛn (Render) usa la variable de entorno AZURE_SQL_CONNECTION.
+// En producci√≥n (Render) usa la variable de entorno AZURE_SQL_CONNECTION.
 // En local usa la cadena de appsettings.json.
 var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION")
     ?? builder.Configuration.GetConnectionString("HotelConnection");
@@ -27,7 +31,7 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-// Render asigna el puerto din·micamente vÌa variable de entorno PORT
+// Render asigna el puerto din√°micamente v√≠a variable de entorno PORT
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
 {
@@ -45,7 +49,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// En Render, el proxy ya maneja HTTPS ó evitamos redirect loops
+// En Render, el proxy ya maneja HTTPS ‚Äî evitamos redirect loops
 if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
 {
     app.UseHttpsRedirection();
@@ -61,7 +65,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // ============================================================
-// EJECUTAR MIGRACIONES AUTOM¡TICAMENTE AL INICIO
+// EJECUTAR MIGRACIONES AUTOM√ÅTICAMENTE AL INICIO
 // ============================================================
 using (var scope = app.Services.CreateScope())
 {
