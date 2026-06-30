@@ -216,14 +216,21 @@ namespace HotelBooking.Controllers
                     return RedirectToAction("Habitaciones");
                 }
 
-                // Como ahora las imágenes están en ImgBB (no en disco), solo borramos los registros de la BD
-                _context.ImagenesHabitacion.RemoveRange(habitacion.Imagenes);
+                // PASO 1: Borrar TODAS las reservas asociadas (incluidas Canceladas/CheckOut) y GUARDAR primero
+                if (habitacion.Reservas.Any())
+                {
+                    _context.Reservas.RemoveRange(habitacion.Reservas);
+                    await _context.SaveChangesAsync();
+                }
 
-                var reservasCanceladas = habitacion.Reservas.Where(r => r.Estado == "Cancelada" || r.Estado == "CheckOut").ToList();
-                _context.Reservas.RemoveRange(reservasCanceladas);
+                // PASO 2: Borrar las imágenes asociadas y GUARDAR
+                if (habitacion.Imagenes.Any())
+                {
+                    _context.ImagenesHabitacion.RemoveRange(habitacion.Imagenes);
+                    await _context.SaveChangesAsync();
+                }
 
-                await _context.SaveChangesAsync();
-
+                // PASO 3: Ahora sí, borrar la habitación (ya no tiene nada relacionado)
                 _context.Habitaciones.Remove(habitacion);
                 await _context.SaveChangesAsync();
 
