@@ -1,0 +1,185 @@
+﻿@model HotelBooking.Models.Reserva
+@{
+    ViewData["Title"] = $"Boleta de Reserva #{Model.Id}";
+    var badgeColor = Model.Estado switch
+    {
+        "Pendiente" => "#f59e0b",
+        "Confirmada" => "#10b981",
+        "CheckIn" => "#3b82f6",
+        "CheckOut" => "#6b7280",
+        "Cancelada" => "#ef4444",
+        _ => "#6b7280"
+    };
+}
+
+<div class="container py-5">
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert-luxury mb-4 d-flex align-items-center gap-3 p-4 rounded-4">
+            <i class="fas fa-check-circle fs-3 text-gold"></i>
+            <div><strong>¡Reserva confirmada!</strong><br /><span>@TempData["Exito"]</span></div>
+        </div>
+    }
+
+    <div class="boleta-card mx-auto" style="max-width:780px;">
+        <div class="boleta-header p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="text-gold fw-bold mb-0"><i class="fas fa-hotel me-2"></i>HOTEL BOOKING COCHABAMBA</h4>
+                <small class="text-muted">Av. Heroínas #123 · Cochabamba, Bolivia · +591 4 4123456</small>
+            </div>
+            <div class="text-end">
+                <div class="text-muted small">BOLETA DE RESERVA</div>
+                <div class="fw-bold text-white fs-5">#@Model.Id.ToString("D6")</div>
+                <span class="badge" style="background:@badgeColor">@Model.Estado</span>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="boleta-stat">
+                        <i class="fas fa-moon text-gold"></i>
+                        <div class="fs-4 fw-bold">@Model.TotalDias</div><div class="small text-muted">Noches</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="boleta-stat">
+                        <i class="fas fa-sign-in-alt text-gold"></i>
+                        <div class="fw-bold">@Model.FechaEntrada.ToString("dd MMM")</div><div class="small text-muted">Check-In</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="boleta-stat">
+                        <i class="fas fa-sign-out-alt text-gold"></i>
+                        <div class="fw-bold">@Model.FechaSalida.ToString("dd MMM")</div><div class="small text-muted">Check-Out</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="boleta-stat total-stat">
+                        <div class="small text-muted">TOTAL</div>
+                        <div class="fs-4 fw-bold text-gold">Bs. @Model.TotalPagar.ToString("N0")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h6 class="section-title"><i class="fas fa-user me-2 text-gold"></i>DATOS DEL HUÉSPED</h6>
+                    <table class="boleta-table w-100">
+                        <tr><td class="label">Nombre</td><td>@Model.Usuario?.Nombre</td></tr>
+                        <tr><td class="label">Email</td><td>@Model.Usuario?.Email</td></tr>
+                        <tr><td class="label">Teléfono</td><td>@(Model.Usuario?.Telefono ?? "—")</td></tr>
+                        <tr><td class="label">Reservado el</td><td>@Model.FechaReserva.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="section-title"><i class="fas fa-bed me-2 text-gold"></i>HABITACIÓN</h6>
+                    <table class="boleta-table w-100">
+                        <tr><td class="label">Nombre</td><td>@Model.Habitacion?.Nombre</td></tr>
+                        <tr><td class="label">Categoría</td><td>@Model.Habitacion?.Categoria?.Nombre</td></tr>
+                        <tr><td class="label">Capacidad</td><td>@Model.Habitacion?.Capacidad persona(s)</td></tr>
+                        <tr><td class="label">Precio/noche</td><td>Bs. @Model.Habitacion?.PrecioPorNoche.ToString("N0")</td></tr>
+                    </table>
+                </div>
+
+                <div class="col-12">
+                    <h6 class="section-title"><i class="fas fa-calendar-alt me-2 text-gold"></i>ESTADÍA</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="fecha-box">
+                                <div class="small text-muted mb-1">CHECK-IN</div>
+                                <div class="fw-bold">@Model.FechaEntrada.ToString("dd/MM/yyyy")</div>
+                                <div class="small text-gold">A partir de las 14:00 hrs</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="fecha-box">
+                                <div class="small text-muted mb-1">CHECK-OUT</div>
+                                <div class="fw-bold">@Model.FechaSalida.ToString("dd/MM/yyyy")</div>
+                                <div class="small text-gold">Hasta las 12:00 hrs</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="fecha-box text-center">
+                                <div class="small text-muted mb-1">DURACIÓN</div>
+                                <div class="fs-3 fw-bold text-gold">@Model.TotalDias</div><div class="small">noche(s)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Notas))
+                {
+                    <div class="col-12">
+                        <h6 class="section-title"><i class="fas fa-sticky-note me-2 text-gold"></i>NOTAS</h6>
+                        <p class="text-muted mb-0">@Model.Notas</p>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Habitacion?.Servicios))
+                {
+                    <div class="col-12">
+                        <h6 class="section-title"><i class="fas fa-concierge-bell me-2 text-gold"></i>SERVICIOS INCLUIDOS</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var s in Model.Habitacion.Servicios.Split(','))
+                            {
+                                <span class="servicio-badge">✓ @s.Trim()</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="total-box mt-4 p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">@Model.TotalDias noches × Bs. @Model.Habitacion?.PrecioPorNoche.ToString("N0")/noche</div>
+                    <div class="fw-bold text-white">TOTAL A PAGAR</div>
+                </div>
+                <div class="fs-2 fw-bold text-gold">Bs. @Model.TotalPagar.ToString("N2")</div>
+            </div>
+
+            <div class="politicas-box mt-3 p-3">
+                <p class="small mb-1 text-gold fw-bold">POLÍTICAS DE RESERVA</p>
+                <p class="small mb-1">• Presente esta boleta al momento de su llegada al hotel.</p>
+                <p class="small mb-1">• Cancelación gratuita hasta 24 horas antes del check-in.</p>
+                <p class="small mb-0">• Para modificaciones: +591 4 4123456</p>
+            </div>
+
+            <div class="d-flex gap-3 mt-4 flex-wrap">
+                <a asp-action="DescargarBoleta" asp-route-id="@Model.Id" class="btn btn-gold flex-fill">
+                    <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                </a>
+                <a asp-controller="Cliente" asp-action="MisReservas" class="btn btn-outline-gold flex-fill">
+                    <i class="fas fa-list me-2"></i>Mis Reservas
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-dark-outline flex-fill">
+                    <i class="fas fa-home me-2"></i>Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .boleta-card { background:#111; border:1px solid #2a2a2a; border-radius:16px; overflow:hidden; }
+        .boleta-header { background:#0a0a0a; border-bottom:2px solid #C9A84C; }
+        .boleta-stat { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:10px; padding:14px; text-align:center; height:100%; }
+        .total-stat { border-color:#C9A84C; }
+        .section-title { color:#C9A84C; font-size:.75rem; letter-spacing:1.5px; text-transform:uppercase; border-bottom:1px solid #2a2a2a; padding-bottom:6px; margin-bottom:10px; }
+        .boleta-table td { padding:5px 8px; font-size:.9rem; color:#ccc; border-bottom:1px solid #1f1f1f; }
+        .boleta-table td.label { color:#888; width:40%; font-weight:600; white-space:nowrap; }
+        .fecha-box { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:10px; padding:14px; }
+        .total-box { background:#0a0a0a; border:2px solid #C9A84C; border-radius:12px; }
+        .politicas-box { background:#1a1a1a; border-left:3px solid #C9A84C; border-radius:0 8px 8px 0; }
+        .servicio-badge { background:#1a1a1a; border:1px solid #C9A84C; color:#C9A84C; padding:4px 12px; border-radius:20px; font-size:.8rem; }
+        .text-gold { color:#C9A84C !important; }
+        .btn-gold { background:#C9A84C; color:#000; font-weight:700; border:none; padding:.6rem 1.5rem; border-radius:8px; }
+        .btn-gold:hover { background:#b8943a; color:#000; }
+        .btn-outline-gold { border:1px solid #C9A84C; color:#C9A84C; background:transparent; padding:.6rem 1.5rem; border-radius:8px; }
+        .btn-outline-gold:hover { background:#C9A84C; color:#000; }
+        .btn-dark-outline { border:1px solid #333; color:#aaa; background:transparent; padding:.6rem 1.5rem; border-radius:8px; }
+        .btn-dark-outline:hover { background:#1a1a1a; color:#fff; }
+        .alert-luxury { background:#1a1a1a; border:1px solid #C9A84C; color:#fff; }
+    </style>
+}
